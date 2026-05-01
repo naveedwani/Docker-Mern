@@ -33,7 +33,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd app || exit 1
             git pull origin master
+            cd Docker-Mern
             docker compose down
             docker compose up -d --build
