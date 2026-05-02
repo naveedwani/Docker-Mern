@@ -3,7 +3,7 @@ name: Deploy to EC2
 on:
   push:
     branches:
-      - master   # 🔥 keep consistent
+      - master
 
 permissions:
   id-token: write
@@ -23,8 +23,12 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Verify AWS Identity (debug)
-        run: aws sts get-caller-identity
+      - name: Verify AWS Identity
+        run: |
+          echo "AWS Identity:"
+          aws sts get-caller-identity
+          echo "EC2 Instances:"
+          aws ec2 describe-instances --query 'Reservations[].Instances[].{ID:InstanceId,IP:PublicIpAddress}' --region ${{ secrets.AWS_REGION }}
 
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.0.0
@@ -32,8 +36,28 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
+          script_stop: true
+          debug: true
           script: |
-            cd ~/Docker-Mern  # Navigate to the deployment directory
+            set -e
+            echo "=== Deployment Started ==="
+            echo "Checking prerequisites..."
+            docker --version
+            docker compose --version
+            
+            cd ~/Docker-Mern || exit 1
+            echo "Current directory: $(pwd)"
+            
+            echo "Pulling latest code..."
             git pull origin master
-            docker compose down
+            
+            echo "Stopping running containers..."
+            docker compose down || true
+            
+            echo "Building and starting containers..."
             docker compose up -d --build
+            
+            echo "Checking container status..."
+            docker compose ps
+            
+            echo "=== Deployment Completed Successfully ==="
