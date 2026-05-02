@@ -35,6 +35,5 @@ jobs:
           script: |
             cd ~/Docker-Mern  # Navigate to the deployment directory
             git pull origin master
-            cd Docker-Mern
             docker compose down
             docker compose up -d --build
