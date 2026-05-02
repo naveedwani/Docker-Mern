@@ -45,11 +45,12 @@ jobs:
             docker --version
             docker compose --version
             
-            cd ~/Docker-Mern || exit 1
-            echo "Current directory: $(pwd)"
+            # cd ~/Docker-Mern || exit 1
+            # echo "Current directory: $(pwd)"
             
             echo "Pulling latest code..."
             git pull origin master
+            ls -la
             
             echo "Stopping running containers..."
             docker compose down || true
